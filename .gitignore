@@ -1,0 +1,26 @@
+# Neo4j runtime data & logs
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Neo4j plugins (JAR binaries)
+plugins/*.jar
+!plugins/.gitkeep
+
+# Force include scripts (unignore if overridden by global gitignore)
+!scripts/
+!scripts/**
+
+# Environment & config
+.env
+.env.*
+!.env.example
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

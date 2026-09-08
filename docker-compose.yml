@@ -1,0 +1,23 @@
+services:
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: neo4j-memory
+    restart: unless-stopped
+    ports:
+      - "7474:7474" # Browser / HTTP
+      - "7687:7687" # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      # APOC 플러그인은 컨테이너 실행 시 자동 다운로드 및 활성화
+      - NEO4J_PLUGINS=["apoc"]
+      # APOC 및 n10s 보안 허용 목록 설정
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,n10s.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*,n10s.*
+      # 메모리 설정
+      - NEO4J_server_memory_heap_initial__size=2G
+      - NEO4J_server_memory_heap_max__size=4G
+      - NEO4J_server_memory_pagecache_size=2G
+    volumes:
+      - ./data:/data
+      - ./logs:/logs
+      - ./plugins:/plugins
