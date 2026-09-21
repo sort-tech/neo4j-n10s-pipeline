@@ -1,0 +1,224 @@
+#
+# 샘플 온톨로지 (T-Box) — 클래스 계층 / 프로퍼티 정의
+#
+# n10s 의 `n10s.onto.import.*` 프로시저로 적재하면
+#   (:Class), (:Relationship), (:Property) 노드와
+#   [:SCO], [:SPO], [:DOMAIN], [:RANGE] 관계로 변환됩니다.
+#
+# 도메인: 기술 조직의 사람 · 조직 · 프로젝트 · 역량 지식 그래프
+#
+
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix demo: <https://sort.tech/ontology/demo#> .
+
+<https://sort.tech/ontology/demo>
+    a               owl:Ontology ;
+    rdfs:label      "SORT Demo Ontology" ;
+    rdfs:comment    "Neo4j + n10s 파이프라인 검증용 샘플 온톨로지." ;
+    owl:versionInfo "1.0.0" .
+
+
+########################################################################
+# 클래스 계층 (rdfs:subClassOf)
+#
+# 최상위 클래스 4종(Person / Organization / Project / Skill)이
+# 시각화에서 색상 채널을 나눠 갖습니다. viz/palette.py 참고.
+########################################################################
+
+### 1) Person
+demo:Person
+    a          owl:Class ;
+    rdfs:label "Person" ;
+    rdfs:comment "사람. 조직 소속 여부와 무관한 최상위 클래스." .
+
+demo:Employee
+    a               owl:Class ;
+    rdfs:subClassOf demo:Person ;
+    rdfs:label      "Employee" ;
+    rdfs:comment    "조직에 고용된 사람." .
+
+demo:Engineer
+    a               owl:Class ;
+    rdfs:subClassOf demo:Employee ;
+    rdfs:label      "Engineer" .
+
+demo:Researcher
+    a               owl:Class ;
+    rdfs:subClassOf demo:Employee ;
+    rdfs:label      "Researcher" .
+
+demo:Student
+    a               owl:Class ;
+    rdfs:subClassOf demo:Person ;
+    rdfs:label      "Student" .
+
+### 2) Organization
+demo:Organization
+    a          owl:Class ;
+    rdfs:label "Organization" ;
+    rdfs:comment "법인 · 기관 등의 조직." .
+
+demo:Company
+    a               owl:Class ;
+    rdfs:subClassOf demo:Organization ;
+    rdfs:label      "Company" .
+
+demo:University
+    a               owl:Class ;
+    rdfs:subClassOf demo:Organization ;
+    rdfs:label      "University" .
+
+### 3) Project
+demo:Project
+    a          owl:Class ;
+    rdfs:label "Project" ;
+    rdfs:comment "사람이 참여하고 조직이 소유하는 작업 단위." .
+
+demo:ProductProject
+    a               owl:Class ;
+    rdfs:subClassOf demo:Project ;
+    rdfs:label      "ProductProject" .
+
+demo:ResearchProject
+    a               owl:Class ;
+    rdfs:subClassOf demo:Project ;
+    rdfs:label      "ResearchProject" .
+
+### 4) Skill
+demo:Skill
+    a          owl:Class ;
+    rdfs:label "Skill" ;
+    rdfs:comment "사람이 보유하고 프로젝트가 요구하는 역량." .
+
+demo:ProgrammingLanguage
+    a               owl:Class ;
+    rdfs:subClassOf demo:Skill ;
+    rdfs:label      "ProgrammingLanguage" .
+
+demo:KnowledgeDomain
+    a               owl:Class ;
+    rdfs:subClassOf demo:Skill ;
+    rdfs:label      "KnowledgeDomain" .
+
+
+########################################################################
+# 오브젝트 프로퍼티 (owl:ObjectProperty)
+#
+# rdfs:domain / rdfs:range 가 [:DOMAIN] / [:RANGE] 관계로,
+# rdfs:subPropertyOf 가 [:SPO] 관계로 적재됩니다.
+########################################################################
+
+demo:affiliatedWith
+    a           owl:ObjectProperty ;
+    rdfs:label  "affiliatedWith" ;
+    rdfs:domain demo:Person ;
+    rdfs:range  demo:Organization ;
+    rdfs:comment "사람과 조직의 일반적인 소속 관계 (상위 프로퍼티)." .
+
+demo:worksFor
+    a                  owl:ObjectProperty ;
+    rdfs:subPropertyOf demo:affiliatedWith ;
+    rdfs:label         "worksFor" ;
+    rdfs:domain        demo:Employee ;
+    rdfs:range         demo:Company .
+
+demo:studiesAt
+    a                  owl:ObjectProperty ;
+    rdfs:subPropertyOf demo:affiliatedWith ;
+    rdfs:label         "studiesAt" ;
+    rdfs:domain        demo:Student ;
+    rdfs:range         demo:University .
+
+demo:employs
+    a            owl:ObjectProperty ;
+    rdfs:label   "employs" ;
+    rdfs:domain  demo:Company ;
+    rdfs:range   demo:Employee ;
+    owl:inverseOf demo:worksFor .
+
+demo:contributesTo
+    a           owl:ObjectProperty ;
+    rdfs:label  "contributesTo" ;
+    rdfs:domain demo:Person ;
+    rdfs:range  demo:Project .
+
+demo:leads
+    a                  owl:ObjectProperty ;
+    rdfs:subPropertyOf demo:contributesTo ;
+    rdfs:label         "leads" ;
+    rdfs:domain        demo:Employee ;
+    rdfs:range         demo:Project .
+
+demo:ownedBy
+    a           owl:ObjectProperty ;
+    rdfs:label  "ownedBy" ;
+    rdfs:domain demo:Project ;
+    rdfs:range  demo:Organization .
+
+demo:hasSkill
+    a           owl:ObjectProperty ;
+    rdfs:label  "hasSkill" ;
+    rdfs:domain demo:Person ;
+    rdfs:range  demo:Skill .
+
+demo:requiresSkill
+    a           owl:ObjectProperty ;
+    rdfs:label  "requiresSkill" ;
+    rdfs:domain demo:Project ;
+    rdfs:range  demo:Skill .
+
+demo:collaboratesWith
+    a           owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:label  "collaboratesWith" ;
+    rdfs:domain demo:Person ;
+    rdfs:range  demo:Person .
+
+demo:dependsOn
+    a           owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:label  "dependsOn" ;
+    rdfs:domain demo:Project ;
+    rdfs:range  demo:Project .
+
+demo:relatedTo
+    a           owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:label  "relatedTo" ;
+    rdfs:domain demo:Skill ;
+    rdfs:range  demo:Skill .
+
+
+########################################################################
+# 데이터타입 프로퍼티 (owl:DatatypeProperty)
+########################################################################
+
+demo:email
+    a           owl:DatatypeProperty ;
+    rdfs:label  "email" ;
+    rdfs:domain demo:Person ;
+    rdfs:range  xsd:string .
+
+demo:yearsOfExperience
+    a           owl:DatatypeProperty ;
+    rdfs:label  "yearsOfExperience" ;
+    rdfs:domain demo:Employee ;
+    rdfs:range  xsd:integer .
+
+demo:foundedIn
+    a           owl:DatatypeProperty ;
+    rdfs:label  "foundedIn" ;
+    rdfs:domain demo:Organization ;
+    rdfs:range  xsd:integer .
+
+demo:startedOn
+    a           owl:DatatypeProperty ;
+    rdfs:label  "startedOn" ;
+    rdfs:domain demo:Project ;
+    rdfs:range  xsd:date .
+
+demo:proficiencyLevel
+    a           owl:DatatypeProperty ;
+    rdfs:label  "proficiencyLevel" ;
+    rdfs:domain demo:Skill ;
+    rdfs:range  xsd:string .

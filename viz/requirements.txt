@@ -1,0 +1,5 @@
+# Neo4j 소스(기본 경로)에 필요
+neo4j>=5.14
+
+# --source ttl 로 Neo4j 없이 그릴 때만 필요
+rdflib>=7.0

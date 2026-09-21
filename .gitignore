@@ -12,6 +12,15 @@ plugins/*.jar
 !scripts/
 !scripts/**
 
+# Generated visualisations (`python3 -m viz draw`)
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
 # Environment & config
 .env
 .env.*
