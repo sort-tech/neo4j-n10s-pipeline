@@ -1,0 +1,208 @@
+#
+# 샘플 인스턴스 데이터 (A-Box)
+#
+# sample-ontology.ttl 의 클래스/프로퍼티를 사용하는 개체 28개.
+# n10s 의 `n10s.rdf.import.*` 프로시저로 적재하면
+# rdf:type 이 노드 라벨로, 오브젝트 프로퍼티가 관계로 변환됩니다.
+#
+# 모든 개체에 rdfs:label 을 부여해 두었으므로 시각화에서
+# 노드 이름으로 그대로 사용할 수 있습니다.
+#
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix demo: <https://sort.tech/ontology/demo#> .
+@prefix ex:   <https://sort.tech/resource/> .
+
+
+########################################################################
+# 조직 (Organization)
+########################################################################
+
+ex:sortTech a demo:Company ;
+    rdfs:label "SORT Tech" ;
+    demo:foundedIn 2019 .
+
+ex:northwind a demo:Company ;
+    rdfs:label "Northwind Data" ;
+    demo:foundedIn 2012 .
+
+ex:kaist a demo:University ;
+    rdfs:label "KAIST" ;
+    demo:foundedIn 1971 .
+
+ex:snu a demo:University ;
+    rdfs:label "Seoul National University" ;
+    demo:foundedIn 1946 .
+
+
+########################################################################
+# 사람 (Person)
+########################################################################
+
+ex:alice a demo:Engineer ;
+    rdfs:label "Alice Kim" ;
+    demo:email "alice@sort.tech" ;
+    demo:yearsOfExperience 9 ;
+    demo:worksFor ex:sortTech ;
+    demo:leads ex:graphMemory ;
+    demo:contributesTo ex:ontologyPipeline ;
+    demo:hasSkill ex:python , ex:cypher , ex:knowledgeGraph ;
+    demo:collaboratesWith ex:bob , ex:carol .
+
+ex:bob a demo:Engineer ;
+    rdfs:label "Bob Lee" ;
+    demo:email "bob@sort.tech" ;
+    demo:yearsOfExperience 5 ;
+    demo:worksFor ex:sortTech ;
+    demo:contributesTo ex:graphMemory , ex:dataCatalog ;
+    demo:hasSkill ex:python , ex:rust , ex:distributedSystems .
+
+ex:carol a demo:Researcher ;
+    rdfs:label "Carol Park" ;
+    demo:email "carol@sort.tech" ;
+    demo:yearsOfExperience 12 ;
+    demo:worksFor ex:sortTech ;
+    demo:leads ex:semanticSearch ;
+    demo:contributesTo ex:reasoningEngine ;
+    demo:hasSkill ex:python , ex:nlp , ex:ontologyEngineering ;
+    demo:collaboratesWith ex:heidi .
+
+ex:dave a demo:Engineer ;
+    rdfs:label "Dave Choi" ;
+    demo:email "dave@northwind.example" ;
+    demo:yearsOfExperience 7 ;
+    demo:worksFor ex:northwind ;
+    demo:leads ex:dataCatalog ;
+    demo:hasSkill ex:java , ex:cypher , ex:distributedSystems ;
+    demo:collaboratesWith ex:bob .
+
+ex:erin a demo:Researcher ;
+    rdfs:label "Erin Jung" ;
+    demo:email "erin@northwind.example" ;
+    demo:yearsOfExperience 4 ;
+    demo:worksFor ex:northwind ;
+    demo:contributesTo ex:rdfBenchmark ;
+    demo:hasSkill ex:python , ex:knowledgeGraph .
+
+ex:frank a demo:Employee ;
+    rdfs:label "Frank Oh" ;
+    demo:email "frank@sort.tech" ;
+    demo:yearsOfExperience 15 ;
+    demo:worksFor ex:sortTech ;
+    demo:contributesTo ex:ontologyPipeline ;
+    demo:hasSkill ex:ontologyEngineering .
+
+ex:grace a demo:Student ;
+    rdfs:label "Grace Yoon" ;
+    demo:email "grace@kaist.example" ;
+    demo:studiesAt ex:kaist ;
+    demo:contributesTo ex:rdfBenchmark ;
+    demo:hasSkill ex:python , ex:nlp .
+
+ex:heidi a demo:Researcher ;
+    rdfs:label "Heidi Shin" ;
+    demo:email "heidi@kaist.example" ;
+    demo:yearsOfExperience 11 ;
+    demo:leads ex:reasoningEngine ;
+    demo:contributesTo ex:semanticSearch ;
+    demo:hasSkill ex:ontologyEngineering , ex:knowledgeGraph .
+
+ex:ivan a demo:Engineer ;
+    rdfs:label "Ivan Suh" ;
+    demo:email "ivan@sort.tech" ;
+    demo:yearsOfExperience 3 ;
+    demo:worksFor ex:sortTech ;
+    demo:leads ex:ontologyPipeline ;
+    demo:hasSkill ex:rust , ex:cypher .
+
+ex:judy a demo:Student ;
+    rdfs:label "Judy Han" ;
+    demo:email "judy@snu.example" ;
+    demo:studiesAt ex:snu ;
+    demo:contributesTo ex:semanticSearch ;
+    demo:hasSkill ex:python .
+
+
+########################################################################
+# 프로젝트 (Project)
+########################################################################
+
+ex:graphMemory a demo:ProductProject ;
+    rdfs:label "Graph Memory" ;
+    demo:startedOn "2024-03-01"^^xsd:date ;
+    demo:ownedBy ex:sortTech ;
+    demo:requiresSkill ex:python , ex:cypher , ex:knowledgeGraph ;
+    demo:dependsOn ex:ontologyPipeline .
+
+ex:ontologyPipeline a demo:ProductProject ;
+    rdfs:label "Ontology Pipeline" ;
+    demo:startedOn "2024-01-15"^^xsd:date ;
+    demo:ownedBy ex:sortTech ;
+    demo:requiresSkill ex:cypher , ex:ontologyEngineering .
+
+ex:semanticSearch a demo:ResearchProject ;
+    rdfs:label "Semantic Search" ;
+    demo:startedOn "2023-09-01"^^xsd:date ;
+    demo:ownedBy ex:sortTech ;
+    demo:requiresSkill ex:nlp , ex:knowledgeGraph ;
+    demo:dependsOn ex:graphMemory .
+
+ex:reasoningEngine a demo:ResearchProject ;
+    rdfs:label "Reasoning Engine" ;
+    demo:startedOn "2025-02-10"^^xsd:date ;
+    demo:ownedBy ex:kaist ;
+    demo:requiresSkill ex:ontologyEngineering , ex:rust ;
+    demo:dependsOn ex:ontologyPipeline .
+
+ex:dataCatalog a demo:ProductProject ;
+    rdfs:label "Data Catalog" ;
+    demo:startedOn "2022-06-20"^^xsd:date ;
+    demo:ownedBy ex:northwind ;
+    demo:requiresSkill ex:java , ex:distributedSystems .
+
+ex:rdfBenchmark a demo:ResearchProject ;
+    rdfs:label "RDF Benchmark" ;
+    demo:startedOn "2025-05-05"^^xsd:date ;
+    demo:ownedBy ex:northwind ;
+    demo:requiresSkill ex:python , ex:knowledgeGraph .
+
+
+########################################################################
+# 역량 (Skill)
+########################################################################
+
+ex:python a demo:ProgrammingLanguage ;
+    rdfs:label "Python" ;
+    demo:proficiencyLevel "core" .
+
+ex:cypher a demo:ProgrammingLanguage ;
+    rdfs:label "Cypher" ;
+    demo:proficiencyLevel "core" .
+
+ex:java a demo:ProgrammingLanguage ;
+    rdfs:label "Java" ;
+    demo:proficiencyLevel "supporting" .
+
+ex:rust a demo:ProgrammingLanguage ;
+    rdfs:label "Rust" ;
+    demo:proficiencyLevel "supporting" .
+
+ex:knowledgeGraph a demo:KnowledgeDomain ;
+    rdfs:label "Knowledge Graph" ;
+    demo:proficiencyLevel "core" ;
+    demo:relatedTo ex:ontologyEngineering .
+
+ex:ontologyEngineering a demo:KnowledgeDomain ;
+    rdfs:label "Ontology Engineering" ;
+    demo:proficiencyLevel "core" .
+
+ex:nlp a demo:KnowledgeDomain ;
+    rdfs:label "NLP" ;
+    demo:proficiencyLevel "core" ;
+    demo:relatedTo ex:knowledgeGraph .
+
+ex:distributedSystems a demo:KnowledgeDomain ;
+    rdfs:label "Distributed Systems" ;
+    demo:proficiencyLevel "supporting" .

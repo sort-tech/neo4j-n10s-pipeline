@@ -21,3 +21,6 @@ services:
       - ./data:/data
       - ./logs:/logs
       - ./plugins:/plugins
+      # 샘플 온톨로지 — scripts/02_load_sample.cypher 가
+      # file:///ontology/... 로 읽습니다.
+      - ./ontology:/ontology:ro
