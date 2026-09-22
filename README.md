@@ -33,7 +33,8 @@ neo4j-n10s-starter/
 │   ├── 01_init_n10s.cypher     # n10s 필수 제약조건 및 초기 설정
 │   ├── 02_load_sample.cypher   # 샘플 온톨로지 · 데이터 적재
 │   ├── 03_explore.cypher       # 적재 확인 및 온톨로지 활용 질의
-│   └── 04_inference_procedures.cypher  # n10s 추론 프로시저 예제 (선택)
+│   ├── 04_inference_procedures.cypher  # n10s 추론 프로시저 예제 (선택)
+│   └── load_sample_bolt.py     # bolt 접속 + 순수 Cypher 적재 (n10s 불필요)
 ├── viz/                        # 적재 · 시각화 도구 (Python)
 │   ├── palette.py              # 검증된 색 · 형태 토큰
 │   ├── model.py                # 소스와 렌더러 사이의 중간 표현
@@ -175,7 +176,8 @@ RETURN n;
 
 | 명령 | 하는 일 |
 | :--- | :--- |
-| `./run_demo.sh` | 전체 경로 |
+| `./run_demo.sh` | 전체 경로 (n10s로 적재) |
+| `./run_demo.sh --plain` | 같은 경로지만 **순수 Cypher로 적재** — n10s 플러그인 불필요 |
 | `./run_demo.sh --draw` | 이미 적재된 DB에서 그림만 다시 생성 |
 | `./run_demo.sh --offline` | **Neo4j 없이** `.ttl` 에서 바로 그림 생성 |
 
@@ -212,6 +214,57 @@ python3 -m viz draw
 `cypher-shell`만으로 적재하려면 `scripts/02_load_sample.cypher` 를 쓰세요.
 이 스크립트는 `file:///ontology/...` 를 읽으므로 `docker-compose.yml` 의
 `./ontology:/ontology:ro` 마운트가 필요합니다 (이미 포함되어 있습니다).
+
+### 적재 경로 세 가지
+
+같은 그래프를 만드는 서로 다른 세 경로가 있습니다. 목적에 따라 고르세요.
+
+| 경로 | 명령 | n10s 필요 | 언제 쓰나 |
+| :--- | :--- | :---: | :--- |
+| n10s (권장) | `python3 -m viz load` | ✅ | RDF를 온톨로지로서 다룰 때. 표준 경로입니다. |
+| 순수 Cypher | `python3 scripts/load_sample_bolt.py` | ❌ | 플러그인 없이 바로 돌려 보고 싶을 때 |
+| cypher-shell | `< scripts/02_load_sample.cypher` | ✅ | Cypher만으로 끝내고 싶을 때 |
+
+#### bolt 접속 + 순수 Cypher — `scripts/load_sample_bolt.py`
+
+`GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))` 로
+접속해 **순수 Cypher만으로** 샘플 데이터를 넣는 독립 스크립트입니다.
+
+```bash
+python3 scripts/load_sample_bolt.py              # 적재
+python3 scripts/load_sample_bolt.py --clear      # 기존 데이터 지우고 적재
+python3 scripts/load_sample_bolt.py --drop-only  # 삭제만
+python3 scripts/load_sample_bolt.py --dry-run    # 접속 없이 적재할 내용만 확인
+python3 scripts/load_sample_bolt.py --uri bolt://host:7687 --password secret
+```
+
+n10s가 대신 해 주는 일을 Cypher로 직접 씁니다. 그래서:
+
+- **neosemantics 플러그인이 없는 바닐라 Neo4j에서도 동작합니다.**
+- n10s가 RDF를 어떤 그래프로 바꾸는지가 Cypher로 드러나 보입니다.
+- 결과 모양이 n10s와 같으므로 **`python3 -m viz draw` 와
+  `scripts/03_explore.cypher` 가 그대로 동작합니다.**
+
+만들어지는 모양:
+
+```text
+T-Box  (:Class:Resource        {uri, name})  -[:SCO]->    (:Class)
+       (:Relationship:Resource {uri, name})  -[:DOMAIN]-> (:Class)
+                                             -[:RANGE]->  (:Class)
+                                             -[:SPO]->    (:Relationship)
+       (:Property:Resource     {uri, name})   데이터타입 프로퍼티
+A-Box  (:Resource:<클래스명>    {uri, label, ...리터럴})
+       (:Resource)-[:<프로퍼티명>]->(:Resource)
+```
+
+`.ttl` 이 단일 진실 공급원이고, 리터럴은 `xsd:integer → int`,
+`xsd:date → date` 로 네이티브 타입을 유지합니다. 전부 `uri` 기준 `MERGE`
+이므로 여러 번 실행해도 안전합니다.
+
+> **라벨·관계 타입 보간에 대해:** Cypher는 라벨과 관계 타입을 쿼리
+> 파라미터로 바인딩할 수 없어 쿼리 문자열에 넣어야 합니다. 스크립트의
+> `ident()` 가 `^[A-Za-z][A-Za-z0-9_]*$` 만 통과시켜 주입을 막습니다.
+> 행 데이터는 전부 파라미터로 전달됩니다.
 
 ### 생성되는 그림
 
@@ -253,6 +306,27 @@ Neo4j 없이 전부 돌아갑니다. Neo4j 경로는 n10s가 내놓는 레코드
 python3 -m unittest discover -s tests -v
 ```
 
+`tests/test_load_bolt.py` 에는 **왕복 검증**이 있습니다 — `load_sample_bolt.py`
+가 쓰는 내용을 메모리 위에서 재현한 뒤 `viz/sources.py` 로 다시 읽어, TTL
+경로와 같은 그래프가 나오는지 확인합니다. 넣는 쪽과 읽는 쪽의 라벨·관계
+이름이 어긋나면 그림이 조용히 비어 버리는데, 그 종류의 버그를 잡습니다.
+
+### 검증 상태
+
+| 항목 | 상태 |
+| :--- | :--- |
+| 렌더러 · 레이아웃 · 팔레트 | ✅ 실제 출력을 브라우저로 렌더링해 확인 |
+| Turtle 파싱 (`--source ttl`) | ✅ 테스트 |
+| 순수 Cypher 적재의 쿼리·파라미터 생성 | ✅ 테스트 (가짜 세션) |
+| 적재 → 읽기 왕복 그래프 동등성 | ✅ 테스트 (메모리 재현) |
+| **Cypher · n10s 프로시저의 실제 서버 실행** | ⚠️ **미검증** |
+
+마지막 항목은 개발 환경에서 Neo4j 바이너리를 받을 수 없어 살아 있는 서버에
+대해 실행해 보지 못했습니다. `n10s.onto.import` / `n10s.rdf.import` /
+`n10s.inference.*` 호출과 `load_sample_bolt.py` 의 Cypher가 해당됩니다.
+로컬에서 `./run_demo.sh` 또는 `./run_demo.sh --plain` 을 한 번 실행해
+확인해 주세요.
+
 ---
 
 ## 🛠 유용한 명령어
@@ -266,7 +340,9 @@ python3 -m unittest discover -s tests -v
 | Cypher Shell 접속 | `docker compose exec neo4j cypher-shell -u neo4j -p password` |
 | 전체 데이터 초기화 | `docker compose down -v` 후 `rm -rf data/*` |
 | 샘플 데모 전체 실행 | `./run_demo.sh` |
-| 샘플 적재 / 삭제 | `python3 -m viz load` / `python3 -m viz clear` |
+| 샘플 데모 (n10s 없이) | `./run_demo.sh --plain` |
+| 샘플 적재 / 삭제 (n10s) | `python3 -m viz load` / `python3 -m viz clear` |
+| 샘플 적재 (순수 Cypher) | `python3 scripts/load_sample_bolt.py --clear` |
 | 그림만 다시 생성 | `python3 -m viz draw` |
 | Neo4j 없이 그림 생성 | `python3 -m viz draw --source ttl` |
 | viz 테스트 | `python3 -m unittest discover -s tests` |
